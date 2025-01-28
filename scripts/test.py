@@ -7,7 +7,7 @@ print("Starting test...\n")
 for i in range(1, 8 + 1):
   try:
     with open(f'data/test-images/{i}.jpeg', 'rb') as file:
-      obj = {'image_file': file}
+      obj = {'image': file}
       res = requests.post(
         url=url, 
         files=obj
@@ -18,7 +18,7 @@ for i in range(1, 8 + 1):
       else:
         print(f"{i} failed")
         print(res.text)
-        
+
   except FileNotFoundError:
     print(f"File {i} not found. Skipping.")
   except Exception as e:
