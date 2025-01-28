@@ -4,6 +4,7 @@ import numpy as np
 from numpy.typing import NDArray
 import rembg
 import io
+import base64
 
 def to_image_array(image: ImageFile.Image) -> NDArray[Any]:
   """Converts a PIL Image to a NumPy array -> NDArray[Any]."""
@@ -63,3 +64,8 @@ def preprocess_image(image: Image.Image) -> NDArray[Any]:
   
   except Exception as e:
     raise ValueError(f"Error during image preprocessing: {e}")
+  
+def to_base64(image: Image) -> str:
+  """Convert a PIL Image to a Base64 encoded string."""
+  buffer = to_bytes_image(image)
+  return base64.b64encode(buffer.read()).decode("utf-8")  # Encode to Base64

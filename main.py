@@ -1,10 +1,15 @@
 from fastapi import FastAPI, UploadFile, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from utils.start_server import start_server
-from utils.image import to_image_array, remove_background, preprocess_image, to_bytes_image
+from utils.image import to_image_array, remove_background, preprocess_image, to_base64
 from utils.files import get_image
+from utils.predictions import load_model, predict_class
 
+# Initialise FastAPI app
 app = FastAPI()
+
+# Load tensorflow model
+model = load_model()
 
 @app.post("/upload")
 async def upload_image(request: Request, upload_file: UploadFile | None = None):
@@ -24,17 +29,20 @@ async def upload_image(request: Request, upload_file: UploadFile | None = None):
     image_bg_removed = remove_background(image_array)
 
     # Preprocess image for model (convert 28x28, greyscale, etc.)
-    # TODO: implement model for annotations
     preprocessed_image = preprocess_image(image_bg_removed)
 
-    # Convert to bytes image so it can be returned
-    output_image = to_bytes_image(image_bg_removed)
+    # Make predictions
+    predicted_class = predict_class(model, preprocessed_image)
+
+    # Convert the image to a Base64 string
+    image_base64 = to_base64(image_bg_removed)
 
     response_content = {
-      "image": output_image,
+      "image": image_base64,
+      "class": predicted_class
     }
 
-    return StreamingResponse(output_image, media_type="image/png")
+    return JSONResponse(content=response_content)
 
   except Exception as e:
     return JSONResponse(content={"error": f"Couldn't process image: {str(e)}"}, status_code=500)
