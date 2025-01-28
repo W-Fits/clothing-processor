@@ -20,8 +20,10 @@ try:
     
     if res.status_code == 200:
       print(f"{n} successfully processed")
-      image = Image.open(io.BytesIO(res.content))
-      image.show()
+      # image = Image.open(io.BytesIO(res.content))
+      # image.show()
+      print(res.content)
+      
     else:
       print(f"{n} failed")
       print(res.text)
