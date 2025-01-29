@@ -1,10 +1,11 @@
-from typing import Any
+from typing import Any, Tuple
 from PIL import ImageFile, Image
 import numpy as np
 from numpy.typing import NDArray
 import rembg
 import io
 import base64
+from collections import Counter
 
 def to_image_array(image: ImageFile.Image) -> NDArray[Any]:
   """Converts a PIL Image to a NumPy array -> NDArray[Any]."""
@@ -22,7 +23,7 @@ def to_image_array(image: ImageFile.Image) -> NDArray[Any]:
   return image_array
 
 
-def remove_background(image_array: NDArray[Any]) -> Image:
+def remove_background(image_array: NDArray[Any]) -> tuple[NDArray[Any], Image.Image]:
   """Removes background from a NumPy image array -> Image."""
   if image_array is None or image_array.size == 0:
     raise ValueError("Input image array is None or empty.")
@@ -33,10 +34,10 @@ def remove_background(image_array: NDArray[Any]) -> Image:
   except Exception as e:
     raise ValueError(f"Failed to remove background from the image: {e}")
 
-  return output_image
+  return output_array, output_image
 
 
-def to_bytes_image(image: Image) -> io.BytesIO:
+def to_bytes_image(image: Image.Image) -> io.BytesIO:
   """Converts a PIL Image to a BytesIO object -> io.BytesIO."""
   try:
     bytes_image = io.BytesIO()
@@ -65,7 +66,28 @@ def preprocess_image(image: Image.Image) -> NDArray[Any]:
   except Exception as e:
     raise ValueError(f"Error during image preprocessing: {e}")
   
-def to_base64(image: Image) -> str:
+def to_base64(image: Image.Image) -> str:
   """Convert a PIL Image to a Base64 encoded string."""
   buffer = to_bytes_image(image)
   return base64.b64encode(buffer.read()).decode("utf-8")  # Encode to Base64
+
+
+def get_colour(image_array: NDArray[Any]) -> str:
+  """Find the dominant colour of an image with a removed background -> Hexcode."""
+  
+  if image_array.shape[-1] != 4:
+    raise ValueError("Expected an RGBA image array.")
+
+  pixels = image_array.reshape(-1, 4)
+  non_transparent_pixels = pixels[pixels[:, 3] > 10, :3]  # Alpha > 10 to filter near-transparent pixels
+
+  # If only transparent pixels
+  if len(non_transparent_pixels) == 0:
+    raise ValueError("No visible pixels found in the image.")
+
+  # Get as RBG
+  most_common = Counter(map(tuple, non_transparent_pixels)).most_common(1)
+  rgb = most_common[0][0]  # (R, G, B)
+  
+  # Return as hexcode
+  return f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
