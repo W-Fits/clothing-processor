@@ -5,6 +5,7 @@ from utils.image import to_image_array, remove_background, preprocess_image, get
 from utils.files import get_image
 from utils.predictions import load_model, predict_class
 from utils.auth import auth0_auth_middleware
+from utils.s3 import s3_upload
 
 # Initialise FastAPI app
 app = FastAPI()
@@ -38,9 +39,12 @@ async def upload_image(upload_file: UploadFile | None = None):
     # Get dominant colour 
     colour = get_colour(array_bg_removed)
 
+    s3_url = s3_upload(image_bg_removed)
+
     response_content = {
       "class": predicted_class,
       "colour": colour, 
+      "image_url": s3_url
     }
 
     return JSONResponse(content=response_content)

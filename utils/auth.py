@@ -22,7 +22,10 @@ def get_env():
       "AUTH0_CLIENT_SECRET": os.getenv("AUTH0_CLIENT_SECRET"),
       "AUTH_TOKEN": os.getenv("AUTH_TOKEN"),
       "AUTH0_DOMAIN": os.getenv("AUTH0_DOMAIN"),
-      "AUTH0_AUDIENCE":  os.getenv("AUTH0_AUDIENCE")
+      "AUTH0_AUDIENCE":  os.getenv("AUTH0_AUDIENCE"),
+      "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
+      "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+      "AWS_DEFAULT_REGION": os.getenv("AWS_DEFAULT_REGION"),
     }
   return _env
 
@@ -43,44 +46,44 @@ async def fetch_auth0_jwks():
 
 
 async def verify_auth0_token(id_token: str):
-    """Verify Auth0 JWT token."""
-    env = get_env()
-    try:
-        jwks = await fetch_auth0_jwks()  # Get public keys from Auth0
+  """Verify Auth0 JWT token."""
+  env = get_env()
+  try:
+    jwks = await fetch_auth0_jwks()  # Get public keys from Auth0
 
-        # Decode JWT header to get 'kid'
-        unverified_header = jwt.get_unverified_header(id_token)
-        kid = unverified_header.get("kid")
+    # Decode JWT header to get 'kid'
+    unverified_header = jwt.get_unverified_header(id_token)
+    kid = unverified_header.get("kid")
 
-        # Find the corresponding public key
-        public_key = None
-        for key in jwks["keys"]:
-            if key["kid"] == kid:
-                public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
-                break
+    # Find the corresponding public key
+    public_key = None
+    for key in jwks["keys"]:
+      if key["kid"] == kid:
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
+        break
 
-        if not public_key:
-            raise HTTPException(status_code=401, detail="Public key not found")
+    if not public_key:
+      raise HTTPException(status_code=401, detail="Public key not found")
 
-        # Verify the token
-        claims = jwt.decode(
-            id_token,
-            public_key,
-            algorithms=["RS256"],
-            audience=env["AUTH0_AUDIENCE"],
-            issuer=f"https://{env['AUTH0_DOMAIN']}/",
-        )
-        return claims
+    # Verify the token
+    claims = jwt.decode(
+      id_token,
+      public_key,
+      algorithms=["RS256"],
+      audience=env["AUTH0_AUDIENCE"],
+      issuer=f"https://{env['AUTH0_DOMAIN']}/",
+    )
+    return claims
 
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Token verification error: {str(e)}")
+  except jwt.ExpiredSignatureError:
+    raise HTTPException(status_code=401, detail="Token expired")
+  except jwt.InvalidTokenError:
+    raise HTTPException(status_code=401, detail="Invalid token")
+  except Exception as e:
+    raise HTTPException(status_code=401, detail=f"Token verification error: {str(e)}")
 
 async def auth0_auth_middleware(request: Request, token: str = Depends(security)):
-    """Middleware to validate Auth0 token."""
-    id_token = token.credentials
-    claims = await verify_auth0_token(id_token)
-    return claims
+  """Middleware to validate Auth0 token."""
+  id_token = token.credentials
+  claims = await verify_auth0_token(id_token)
+  return claims
