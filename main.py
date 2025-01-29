@@ -1,9 +1,10 @@
-from fastapi import FastAPI, UploadFile, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import FastAPI, UploadFile, Request, Depends
+from fastapi.responses import JSONResponse
 from utils.start_server import start_server
 from utils.image import to_image_array, remove_background, preprocess_image, to_base64
 from utils.files import get_image
 from utils.predictions import load_model, predict_class
+from utils.auth import auth0_auth_middleware
 
 # Initialise FastAPI app
 app = FastAPI()
@@ -11,8 +12,8 @@ app = FastAPI()
 # Load tensorflow model
 model = load_model()
 
-@app.post("/upload")
-async def upload_image(request: Request, upload_file: UploadFile | None = None):
+@app.post("/", dependencies=[Depends(auth0_auth_middleware)])
+async def upload_image(upload_file: UploadFile | None = None):
   # Check file has been uploaded
   if not upload_file:
     return JSONResponse(content={"error": "File not provided"}, status_code=422)
