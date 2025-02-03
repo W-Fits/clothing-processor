@@ -6,6 +6,7 @@ from utils.files import get_image
 from utils.predictions import load_model, predict_class
 from utils.auth import auth0_auth_middleware
 from utils.s3 import s3_upload
+from mangum import Mangum
 
 # Initialise FastAPI app
 app = FastAPI()
@@ -51,6 +52,8 @@ async def upload_image(upload_file: UploadFile | None = None):
 
   except Exception as e:
     return JSONResponse(content={"error": f"Couldn't process image: {str(e)}"}, status_code=500)
+
+handler = Mangum(app)
 
 if __name__ == "__main__":
   start_server()
