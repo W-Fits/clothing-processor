@@ -16,13 +16,28 @@ def test_image_colour_match():
   scripts.test_colour_match.image_colour_match()
 
 def main():
-  parser = argparse.ArgumentParser(description="Run a specified test function.")
-  parser.add_argument("function", choices=["test_api", "test_random_colour_match", "test_image_colour_match"],
-                      help="Name of the function to run")
+  parser = argparse.ArgumentParser(
+    description="Run a specified script.",
+    formatter_class=argparse.RawTextHelpFormatter
+  )
+  
+  functions = {
+    "test_api": test_api,
+    "test_random_colour_match": test_random_colour_match,
+    "test_image_colour_match": test_image_colour_match
+  }
+  
+  functions_list = "\n\t".join(functions.keys())
+  parser.add_argument(
+    "function",
+    choices=functions.keys(),
+    help=f"\nAvailable scripts:\n\t{functions_list}"
+  )
+  
   args = parser.parse_args()
   
   # Call the selected function
-  globals()[args.function]()
+  functions[args.function]()
 
 if __name__ == "__main__":
   main()
