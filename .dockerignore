@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.env*
+data/test-images
+.git
+venv/
+.venv/
+docs/
+README.md
+CONTRIBUTING.md
+LICENSE
+requirements-dev.txt
+.vscode/
