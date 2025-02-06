@@ -15,6 +15,11 @@ def test_image_colour_match():
   import scripts.test_colour_match
   scripts.test_colour_match.image_colour_match()
 
+def push_env():
+  """Run the push_env"""
+  import scripts.push_env
+  scripts.push_env.main()
+
 def main():
   parser = argparse.ArgumentParser(
     description="Run a specified script.",
@@ -24,7 +29,8 @@ def main():
   functions = {
     "test_api": test_api,
     "test_random_colour_match": test_random_colour_match,
-    "test_image_colour_match": test_image_colour_match
+    "test_image_colour_match": test_image_colour_match,
+    "push_env": push_env,
   }
   
   functions_list = "\n\t".join(functions.keys())

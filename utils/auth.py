@@ -1,48 +1,26 @@
 from fastapi import Depends, HTTPException, Request, FastAPI
 from fastapi.security import HTTPBearer
-import dotenv
-import os
 import jwt
 import http.client
 import json
+from utils.env import get_env 
 
 # Security scheme for extracting tokens
 security = HTTPBearer()
 
-# Caching environment variables
-_env = None
-
-def get_env():
-  """Get environment variables with caching."""
-  global _env
-  if _env is None:
-    dotenv.load_dotenv()
-    _env = {
-      "AUTH0_CLIENT_ID": os.getenv("AUTH0_CLIENT_ID"),
-      "AUTH0_CLIENT_SECRET": os.getenv("AUTH0_CLIENT_SECRET"),
-      "AUTH_TOKEN": os.getenv("AUTH_TOKEN"),
-      "AUTH0_DOMAIN": os.getenv("AUTH0_DOMAIN"),
-      "AUTH0_AUDIENCE":  os.getenv("AUTH0_AUDIENCE"),
-      "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
-      "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
-      "AWS_DEFAULT_REGION": os.getenv("AWS_DEFAULT_REGION"),
-    }
-  return _env
-
-
 async def fetch_auth0_jwks():
-    """Fetch Auth0's JWKS (JSON Web Key Set)"""
-    env = get_env()
-    try:
-        conn = http.client.HTTPSConnection(env["AUTH0_DOMAIN"])
-        conn.request("GET", "/.well-known/jwks.json")
-        response = conn.getresponse()
-        if response.status != 200:
-            raise Exception("Failed to fetch JWKS")
-        jwks = json.loads(response.read().decode())
-        return jwks
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching JWKS: {str(e)}")
+  """Fetch Auth0's JWKS (JSON Web Key Set)"""
+  env = get_env()
+  try:
+    conn = http.client.HTTPSConnection(env["AUTH0_DOMAIN"])
+    conn.request("GET", "/.well-known/jwks.json")
+    response = conn.getresponse()
+    if response.status != 200:
+      raise Exception("Failed to fetch JWKS")
+    jwks = json.loads(response.read().decode())
+    return jwks
+  except Exception as e:
+    raise HTTPException(status_code=500, detail=f"Error fetching JWKS: {str(e)}")
 
 
 async def verify_auth0_token(id_token: str):

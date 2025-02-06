@@ -53,7 +53,7 @@ async def upload_image(upload_file: UploadFile | None = None):
   except Exception as e:
     return JSONResponse(content={"error": f"Couldn't process image: {str(e)}"}, status_code=500)
 
-handler = Mangum(app)
+handler = Mangum(app=app)
 
 if __name__ == "__main__":
   start_server()
