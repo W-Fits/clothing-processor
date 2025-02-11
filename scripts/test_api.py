@@ -1,20 +1,12 @@
 import requests
 import random
 import json
-import os
-from dotenv import load_dotenv
+from utils.env import get_env
 
-# Load .env
-load_dotenv()
+env = get_env()
+TOKEN_URL = f"https://{env["AUTH0_DOMAIN"]}/oauth/token"
 
-# Auth0 Config
-AUTH0_DOMAIN = os.getenv("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID = os.getenv("AUTH0_CLIENT_ID")
-AUTH0_CLIENT_SECRET = os.getenv("AUTH0_CLIENT_SECRET")
-AUTH0_AUDIENCE = os.getenv("AUTH0_AUDIENCE")
-TOKEN_URL = f"https://{AUTH0_DOMAIN}/oauth/token"
-
-UPLOAD_URL = "http://127.0.0.1:8000/"
+UPLOAD_URL = "https://127.0.0.0.0:8000/"
 
 def get_auth0_token():
   """Fetch an Auth0 access token."""
@@ -23,9 +15,9 @@ def get_auth0_token():
       TOKEN_URL,
       headers={"Content-Type": "application/json"},
       data=json.dumps({
-        "client_id": AUTH0_CLIENT_ID,
-        "client_secret": AUTH0_CLIENT_SECRET,
-        "audience": AUTH0_AUDIENCE,
+        "client_id": env["AUTH0_CLIENT_ID"],
+        "client_secret": env["AUTH0_CLIENT_SECRET"],
+        "audience": env["AUTH0_AUDIENCE"],
         "grant_type": "client_credentials"
       }),
     )
